@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Requisição e Resposta</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-csharp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        padding: 20px;
+        background-color: #282c34;
+        color: #f8f8f2;
+    }
+
+    div {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    textarea {
+        width: 100%;
+        height: 100px;
+        border-radius: 4px;
+        border: 1px solid #444;
+        padding: 10px;
+        font-size: 16px;
+        background-color: #333;
+        color: #f8f8f2;
+        resize: vertical;
+    }
+
+    select, input {
+        border-radius: 4px;
+        border: 1px solid #444;
+        padding: 10px;
+        font-size: 16px;
+        background-color: #333;
+        color: #f8f8f2;
+    }
+
+    button {
+        background-color: #008CBA;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    button:hover {
+        background-color: #005f5f;
+    }
+
+    .hidden {
+        display: none;
+    }
+	
+ pre code {
+        color: #dcdcdc;
+    }
+
+    #terminal {
+        background-color: #333;
+        border: 1px solid #444;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+
+    #terminal-header {
+        background-color: #444;
+        padding: 5px;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        color: #ccc;
+    }
+
+    #fake-output {
+        color: #00ff00;  /* cor de texto verde para simular um terminal */
+        font-family: 'Courier New', monospace;
+        white-space: pre-wrap;
+        padding: 10px;
+        border-top: 1px solid #444;
+    }
+</style>
+</head>
+<body>
+
+<div id="request-section">
+    <div>
+        <label for="text-input">Texto a ser digitado:</label>
+        <textarea id="text-input" placeholder="Digite o texto aqui"></textarea>
+    </div>
+
+    <div>
+        <label for="output-text">Texto de Output (Fake):</label>
+        <textarea id="output-text" placeholder="Digite o texto de output aqui"></textarea>
+    </div>
+
+    <div>
+        <label for="language-selector">Selecione a Linguagem:</label>
+        <select id="language-selector">
+            <option value="python">Python</option>
+            <option value="csharp">C#</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="typing-speed">Velocidade de Digitação (ms por caractere):</label>
+        <input type="range" id="typing-speed" name="typing-speed" min="10" max="500" value="50">
+    </div>
+
+    <div>
+        <button onclick="generateResponse()">Gerar Resposta</button>
+    </div>
+</div>
+
+<div id="response-section" class="hidden">
+    <div>
+        <label for="typed-output">Código:</label>
+        <pre id="typed-output" class="line-numbers"><code class="language-python"></code></pre>
+    </div>
+
+    <div id="terminal">
+        <div id="terminal-header">
+            OUTPUT
+        </div>
+        <div>
+            <pre id="fake-output"><code></code></pre>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+    function generateResponse() {
+        const inputText = document.getElementById('text-input').value;
+        const outputText = document.getElementById('output-text').value;
+        const selectedLanguage = document.getElementById('language-selector').value;
+        const typingSpeed = document.getElementById('typing-speed').value;
+        
+        document.getElementById('request-section').classList.add('hidden');
+        document.getElementById('response-section').classList.remove('hidden');
+        
+        // Aguarda 2 segundos antes de começar a digitar
+        setTimeout(() => {
+            startTyping(inputText, outputText, selectedLanguage, typingSpeed);
+        }, 2000);
+    }
+    
+    function goBack() {
+        document.getElementById('request-section').classList.remove('hidden');
+        document.getElementById('response-section').classList.add('hidden');
+    }
+    
+    function startTyping(inputText, outputText, selectedLanguage, typingSpeed) {
+        let charIndex = 0;
+        let lineIndex = 0;
+        const codeElement = document.querySelector('#typed-output code');
+        codeElement.className = 'language-' + selectedLanguage;
+
+        function typeCode(callback) {
+            const text = inputText.split('\n');
+            if (lineIndex < text.length) {
+                if (charIndex < text[lineIndex].length) {
+                    codeElement.textContent += text[lineIndex][charIndex];
+                    Prism.highlightElement(codeElement);
+                    charIndex++;
+                    setTimeout(() => typeCode(callback), typingSpeed);
+                } else {
+                    codeElement.innerHTML += '\n';
+                    lineIndex++;
+                    charIndex = 0;
+                    setTimeout(() => typeCode(callback), typingSpeed);
+                }
+            } else {
+                callback();
+            }
+        }
+
+        let outputCharIndex = 0;
+        let outputLineIndex = 0;
+        const outputElement = document.querySelector('#fake-output code');
+
+        function typeOutput() {
+            const text = outputText.split('\n');
+            if (outputLineIndex < text.length) {
+                if (outputCharIndex < text[outputLineIndex].length) {
+                    outputElement.textContent += text[outputLineIndex][outputCharIndex];
+                    outputCharIndex++;
+                    setTimeout(typeOutput, typingSpeed);
+                } else {
+                    outputElement.innerHTML += '\n';
+                    outputLineIndex++;
+                    outputCharIndex = 0;
+                    setTimeout(typeOutput, typingSpeed);
+                }
+            }
+        }
+
+        charIndex = 0;
+        lineIndex = 0;
+        codeElement.textContent = '';
+        typeCode(() => {
+            outputCharIndex = 0;
+            outputLineIndex = 0;
+            outputElement.textContent = '';
+            typeOutput();
+        });
+    }
+</script>
+
+</body>
+</html>
